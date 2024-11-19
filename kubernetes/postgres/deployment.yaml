@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maple-user-auth-postgres
+  namespace: maple-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maple-user-auth-postgres
+  template:
+    metadata:
+      labels:
+        app: maple-user-auth-postgres
+    spec:
+      containers:
+        - name: maple-user-auth-postgres
+          image: postgres:14.1-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: maple-user-auth-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: maple-user-auth-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: maple-user-auth
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: maple-user-auth-postgres-storage
+      volumes:
+        - name: maple-user-auth-postgres-storage
+          emptyDir: {}

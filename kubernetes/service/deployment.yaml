@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maple-user-auth-deployment
+  namespace: maple-system
+  labels:
+    app: maple-user-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maple-user-auth
+  template:
+    metadata:
+      labels:
+        app: maple-user-auth
+    spec:
+      containers:
+        - name: maple-user-auth-container
+          image: shobhittyagi1011/maple-user-auth-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_URI
+              value: jdbc:postgresql://maple-user-auth-postgres-service:5401/maple-user-auth
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: maple-user-auth-secrets
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: maple-user-auth-secrets
+                  key: POSTGRES_PASSWORD
