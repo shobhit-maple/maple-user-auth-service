@@ -20,7 +20,15 @@ spec:
           image: shobhittyagi1011/maple-user-auth-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8081
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
           env:
             - name: DB_URI
               value: jdbc:postgresql://maple-user-auth-postgres-service:5401/maple-user-auth
@@ -34,3 +42,21 @@ spec:
                 secretKeyRef:
                   name: maple-user-auth-secrets
                   key: POSTGRES_PASSWORD
+
+        - name: envoy
+          image: envoyproxy/envoy:v1.27.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9901
+            - containerPort: 8081
+          volumeMounts:
+            - name: maple-user-auth-envoy-config
+              mountPath: /etc/envoy
+          args:
+            - "--config-path"
+            - "/etc/envoy/envoy.yaml"
+
+      volumes:
+        - name: maple-user-auth-envoy-config
+          configMap:
+            name: maple-user-auth-envoy-config

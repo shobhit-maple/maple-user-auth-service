@@ -22,7 +22,7 @@ spring:
       secret-key: somesecretkeyformapleprojectsomesecretkeyformapleproject
 
 server:
-  port: 8081
+  port: 8080
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
