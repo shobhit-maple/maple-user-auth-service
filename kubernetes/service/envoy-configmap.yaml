@@ -45,10 +45,7 @@ data:
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-                    request_headers_to_add:
-                      - header:
-                          key: "X-Request-ID"
-                          value: "%REQ(X-Request-ID)%"
+
     admin:
       access_log_path: "/tmp/admin_access.log"
       address:
