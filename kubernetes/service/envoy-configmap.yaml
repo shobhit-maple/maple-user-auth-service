@@ -60,16 +60,6 @@ data:
                           domains: ["*"]
                           routes:
                             - match: { prefix: "/" }
-                              response_headers_to_add:
-                                - header:
-                                    key: "X-B3-TraceId"
-                                    value: "%REQ(X-B3-TraceId)%"
-                                - header:
-                                    key: "X-B3-SpanId"
-                                    value: "%REQ(X-B3-SpanId)%"
-                                - header:
-                                    key: "X-Request-ID"
-                                    value: "%REQ(X-Request-ID)%"
                               route:
                                 cluster: maple-user-auth-cluster
                     http_filters:
