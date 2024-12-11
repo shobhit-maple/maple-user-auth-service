@@ -20,7 +20,17 @@ data:
                   - endpoint:
                       address:
                         socket_address: { address: 127.0.0.1, port_value: 8080 }
-
+        - name: zipkin
+          connect_timeout: 1s
+          type: STRICT_DNS
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: zipkin
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address: { address: maple-zipkin-service.maple-tracing.svc.cluster.local, port_value: 9411 }
       listeners:
         - name: maple-user-auth-listener
           address:
@@ -31,7 +41,18 @@ data:
                   typed_config:
                     "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                     codec_type: AUTO
-                    stat_prefix: ingress_http
+                    stat_prefix: maple-user-auth-service
+                    tracing:
+                      overall_sampling:
+                        value: 100.0
+                      provider:
+                        name: envoy.tracers.zipkin
+                        typed_config:
+                          "@type": type.googleapis.com/envoy.config.trace.v3.ZipkinConfig
+                          collector_cluster: zipkin
+                          collector_endpoint: "/api/v2/spans"
+                          collector_endpoint_version: HTTP_JSON
+                          shared_span_context: false
                     route_config:
                       name: local_route
                       virtual_hosts:
@@ -39,13 +60,27 @@ data:
                           domains: ["*"]
                           routes:
                             - match: { prefix: "/" }
+                              response_headers_to_add:
+                                - header:
+                                    key: "X-B3-TraceId"
+                                    value: "%REQ(X-B3-TraceId)%"
+                                - header:
+                                    key: "X-B3-SpanId"
+                                    value: "%REQ(X-B3-SpanId)%"
+                                - header:
+                                    key: "X-Request-ID"
+                                    value: "%REQ(X-Request-ID)%"
                               route:
                                 cluster: maple-user-auth-cluster
                     http_filters:
                       - name: envoy.filters.http.router
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
-
+    node:
+      id: maple-user-auth
+      cluster: maple-user-auth-service
+      metadata:
+        SERVICE_NAME: maple-user-auth-service
     admin:
       access_log_path: "/tmp/admin_access.log"
       address:
