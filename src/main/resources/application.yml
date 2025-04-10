@@ -30,6 +30,26 @@ server:
   error:
     include-stacktrace: always
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://maple-zipkin-service.maple-tracing.svc.cluster.local:9411/api/v2/spans
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 http:
   client:
     max-connect-route: 2
